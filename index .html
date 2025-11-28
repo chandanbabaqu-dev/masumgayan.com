@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>MasumGayan - App & Admin Panel</title>
+    
+    <style>
+        :root { --background-color: #121212; --card-color: #1e1e1e; --border-color: #333333; --text-primary: #e0e0e0; --text-secondary: #a0a0a0; --accent-gradient: linear-gradient(90deg, #8A2387, #E94057, #F27121); --danger-color: #e74c3c; --like-color: #2ecc71; --share-color: #3498db; }
+        * { -webkit-tap-highlight-color: transparent; }
+        body { font-family: 'Noto Sans', sans-serif; background-color: var(--background-color); color: var(--text-primary); margin: 0; user-select: none; -webkit-user-select: none; }
+        
+        /* --- MAIN APP STYLES --- */
+        #main-app-container { padding-top: 80px; padding-bottom: 80px; }
+        .top-bar { position: fixed; top: 0; left: 0; right: 0; display: flex; align-items: center; justify-content: space-between; padding: 12px 15px; background-color: rgba(18, 18, 18, 0.85); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border-color); z-index: 1000; }
+        .logo-container { display: flex; align-items: center; gap: 12px; }
+        .app-logo { width: 40px; height: 40px; border-radius: 8px; object-fit: cover; }
+        .headline { margin: 0; font-size: 26px; font-weight: 700; background: var(--accent-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .icon-button { cursor: pointer; background: none; border: none; padding: 5px; }
+        .icon-button svg { width: 24px; height: 24px; fill: var(--text-secondary); }
+        .post-card { background-color: var(--card-color); border-left: 4px solid transparent; border-radius: 15px; margin: 0 auto 25px auto; max-width: 500px; overflow: hidden; }
+        .post-header { display: flex; align-items: center; padding: 12px 15px; justify-content: space-between; }
+        .profile-info { display: flex; align-items: center; gap: 12px; }
+        .profile-pic { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
+        .main-text { font-size: 18px; line-height: 1.6; margin-bottom: 15px; color: #f1f1f1; padding: 0 20px; }
+        .lesson-text { font-size: 16px; line-height: 1.5; color: var(--text-secondary); font-style: italic; border-left: 3px solid #8A2387; padding-left: 15px; margin: 0 20px 20px; }
+        .post-footer { display: flex; justify-content: space-around; border-top: 1px solid var(--border-color); padding: 8px 0; }
+        .action-button { cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: bold; color: var(--text-secondary); background: none; border: none; padding: 8px 12px; transition: color 0.3s; }
+        .action-button:hover:nth-child(1) { color: var(--like-color); }
+        .action-button:hover:nth-child(2) { color: var(--danger-color); }
+        .action-button:hover:nth-child(3) { color: var(--share-color); }
+        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; display: flex; justify-content: space-around; background-color: rgba(18, 18, 18, 0.85); backdrop-filter: blur(10px); padding: 10px 0; border-top: 1px solid var(--border-color); z-index: 1000; }
+        .nav-item { cursor: pointer; flex-direction: column; align-items: center; color: var(--text-secondary); display: flex; }
+        .nav-item.active { color: var(--text-primary); }
+        .about-section { text-align: center; padding: 40px 20px; max-width: 500px; margin: 20px auto; border-top: 1px solid var(--border-color); }
+        
+        /* --- UTILITY STYLES --- */
+        .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.8); backdrop-filter: blur(10px); display: flex; justify-content: center; align-items: center; z-index: 10001; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
+        .overlay.active { opacity: 1; pointer-events: all; }
+        .modal-box { text-align: center; width: 90%; max-width: 400px; background-color: var(--card-color); border-radius: 15px; padding: 25px; transform: scale(0.9); transition: transform 0.3s; }
+        .overlay.active .modal-box { transform: scale(1); }
+        .welcome-headline { font-size: 1.8rem; background: var(--accent-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 20px; }
+        .form-control, .btn { width: 100%; padding: 12px; background-color: var(--background-color); border: 1px solid var(--border-color); border-radius: 8px; color: var(--text-primary); font-size: 1rem; box-sizing: border-box; }
+        .btn { border: none; cursor: pointer; }
+        .btn-primary { background: var(--accent-gradient); color: white; }
+        #global-loader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(18, 18, 18, 0.7); backdrop-filter: blur(5px); display: flex; justify-content: center; align-items: center; z-index: 9999; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
+        #global-loader.show { opacity: 1; pointer-events: all; }
+        .loader-spinner { width: 60px; height: 60px; border-radius: 50%; background: conic-gradient(#8A2387, #E94057, #F27121, #8A2387); animation: spin 1s linear infinite; mask: radial-gradient(farthest-side, transparent 70%, #000 71%); -webkit-mask: radial-gradient(farthest-side, transparent 70%, #000 71%); }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        
+        /* --- ADMIN PANEL STYLES --- */
+        #admin-panel { position: fixed; top: 0; left: 0; width: 100%; height: 100vh; z-index: 2000; }
+        .admin-main-content { background-color: var(--background-color); width: 100%; height: 100%; padding: 30px; box-sizing: border-box; overflow-y: auto; }
+        #admin-menu-toggle { position: fixed; top: 20px; left: 20px; z-index: 2002; background: var(--card-color); border-radius: 50%; padding: 10px; cursor: pointer; border: 1px solid var(--border-color); }
+        #admin-sidebar-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 2001; opacity: 0; pointer-events: none; transition: opacity 0.4s; }
+        #admin-sidebar-overlay.active { opacity: 1; pointer-events: all; }
+        .admin-sidebar { position: fixed; top: 0; left: 0; width: 250px; background-color: var(--card-color); height: 100%; padding: 20px; box-sizing: border-box; transform: translateX(-100%); transition: transform 0.4s ease; display: flex; flex-direction: column; }
+        #admin-sidebar-overlay.active .admin-sidebar { transform: translateX(0); }
+        .admin-sidebar h1 { background: var(--accent-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .admin-sidebar-nav { flex-grow: 1; }
+        .admin-sidebar-nav a { display: block; color: var(--text-secondary); text-decoration: none; padding: 15px; border-radius: 8px; margin-bottom: 10px; font-weight: 600; }
+        #admin-logout-btn { background-color: var(--danger-color); color: white; text-align: center; padding: 15px; border-radius: 8px; cursor: pointer; }
+        .admin-page { display: none; } .admin-page.active { display: block; }
+        textarea#post-content { min-height: 200px; }
+        .counts-group { display: flex; gap: 10px; }
+        #post-table { width: 100%; border-collapse: collapse; }
+        #post-table th, #post-table td { padding: 15px; border-bottom: 1px solid var(--border-color); text-align: left; }
+    </style>
+</head>
+<body>
+    <div id="global-loader"><div class="loader-spinner"></div></div>
+
+    <div id="main-app-container">
+        <!-- All Modals for the Main App -->
+        <div id="welcome-overlay" class="overlay"><div class="modal-box"><h3 class="welcome-headline">Welcome to MasumGayan</h3><p style="text-align:left; line-height: 1.6;">यह सिर्फ एक ऐप नहीं, यह एक सफर है।<br>यहाँ आपको शक्तिशाली ज्ञान मिलेगा जो आपके दिमाग को शांति देगा और जीवन में सही दिशा दिखाएगा।<br><br>हर पोस्ट में छिपी है एक गहरी सीख।<br><b>क्या आप तैयार हैं?</b></p><button id="welcome-ok-btn" class="btn btn-primary" style="margin-top:20px;">Continue</button></div></div>
+        <div id="search-overlay" class="overlay"><div class="modal-box" style="align-self: flex-start; margin-top: 15vh;"><h3>Search by Code</h3><input type="text" id="search-input" class="form-control" placeholder="e.g., 2:319"><div style="display:flex;justify-content:flex-end;gap:10px;margin-top:15px;"><button id="search-close-btn" class="btn">Close</button><button id="search-submit-btn" class="btn btn-primary">Search</button></div></div></div>
+        <div id="admin-password-overlay" class="overlay"><div class="modal-box"><h3>Admin Login</h3><p>Enter password to continue.</p><input type="password" id="admin-password-input" class="form-control"><div style="display:flex;justify-content:flex-end;gap:10px;margin-top:15px;"><button id="admin-pass-close-btn" class="btn">Cancel</button><button id="admin-pass-submit-btn" class="btn btn-primary">Login</button></div></div></div>
+
+        <header class="top-bar"><div class="logo-container"><img src="https://i.ibb.co/1Gc0BN9k/images-34.jpg" class="app-logo"><h1 class="headline">MasumGayan</h1></div><div class="header-icons"><button class="icon-button" id="open-search-btn"><svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg></button></div></header>
+        <main id="posts-container"></main>
+        <div class="about-section"><h3>About Us</h3><p>Discover secret knowledge and powerful insights to navigate life.</p></div>
+        <nav class="bottom-nav"><div class="nav-item active" onclick="filterPosts('all', this)"><span class="emoji">🏠</span><span class="label">Home</span></div><div class="nav-item" onclick="filterPosts('money', this)"><span class="emoji">💰</span><span class="label">Money</span></div><div class="nav-item" onclick="filterPosts('control', this)"><span class="emoji">🧠</span><span class="label">Control</span></div></nav>
+    </div>
+
+    <div id="admin-panel" style="display: none;">
+        <button id="admin-menu-toggle"><svg viewBox="0 0 24 24" fill="#fff"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg></button>
+        <div id="admin-sidebar-overlay"><nav class="admin-sidebar"><h1>Admin</h1><div class="admin-sidebar-nav"><a href="#upload" class="nav-link active">Upload/Edit</a><a href="#manage" class="nav-link">Manage Posts</a><a href="#users" class="nav-link">Users</a></div><div id="admin-logout-btn">Logout</div></nav></div>
+        <main class="admin-main-content">
+            <section id="upload" class="admin-page active"><h2 class="page-title">Upload New Post</h2><div class="card"><form id="upload-form"><input type="hidden" id="edit-post-id"><div class="form-group"><label for="author">Author</label><select id="author" class="form-control" required></select></div><div class="form-group"><label for="category">Category</label><select id="category" class="form-control" required><option value="" disabled selected>-- Select --</option><option value="home">Home</option><option value="money">Money</option><option value="control">Control</option></select></div><div class="form-group counts-group"><input type="number" id="likes-input" class="form-control" placeholder="Likes (e.g., 50)"><input type="number" id="dislikes-input" class="form-control" placeholder="Dislikes (e.g., 5)"><input type="number" id="shares-input" class="form-control" placeholder="Shares (e.g., 10)"></div><div class="form-group"><label for="post-content">Post Content</label><textarea id="post-content" class="form-control" placeholder="यहाँ मुख्य टेक्स्ट लिखें...&#10;---&#10;...फिर यहाँ सीख लिखें।"></textarea></div><button type="submit" class="btn btn-primary">Upload Post</button></form></div></section>
+            <section id="manage" class="admin-page"><h2 class="page-title">Manage Posts</h2><div class="card"><div class="form-group"><input type="text" id="admin-search-input" class="form-control" placeholder="Search by code..."></div><table id="post-table"><thead><tr><th>Code</th><th>Author</th><th>Snippet</th><th>Actions</th></tr></thead><tbody id="posts-list-admin"></tbody></table></div></section>
+            <section id="users" class="admin-page"><h2 class="page-title">Users</h2><p>User management will be available after login system is built.</p></section>
+        </main>
+    </div>
+    
+    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-firestore-compat.js"></script>
+    
+    <script>
+    // --- 0. CONFIG & INITIALIZATION ---
+    const firebaseConfig = { apiKey: "AIzaSyBtS4tX25V68HLNr9mnW-sD77sjOn_DyyU", authDomain: "masumgayan-cd918.firebaseapp.com", projectId: "masumgayan-cd918", storageBucket: "masumgayan-cd918.appspot.com", messagingSenderId: "512168334730", appId: "1:512168334730:web:7878e4accaf3a61ccc2473" };
+    const adminSecretCode = "81:02:01:50:93";
+    const adminPassword = "admin786";
+    let allPostsData = [];
+
+    // NOTE: Change author names, image links, and theme colors here
+    const AUTHORS = {
+        missrahul:   { name: "MISS RAHUL",   profilePic: "https://i.ibb.co/S4Y6q3CN/images-25.jpg",      themeColor: "#E91E63" },
+        periyababu:  { name: "PERIYA BABU",  profilePic: "https://i.ibb.co/cSR1xNK8/images-27.jpg",      themeColor: "#FF5722" },
+        rajjakdalal: { name: "RAJJAK DALAL", profilePic: "https://i.ibb.co/20fXBrqr/images-30.jpg",      themeColor: "#009688" },
+        onlymony:    { name: "ONLY MONY",    profilePic: "https://i.ibb.co/dZQZQDV/images-28.jpg",      themeColor: "#FFC107" },
+        masumboy:    { name: "MASUM BOY",    profilePic: "https://i.ibb.co/nqBhd1zh/images-33.jpg",      themeColor: "#2196F3" },
+        losuking:    { name: "LOSU KING",    profilePic: "https://i.ibb.co/W4YFYzvM/images-26.jpg",      themeColor: "#673AB7" },
+        rahulpinki:  { name: "RAHUL PINKI",  profilePic: "https://i.ibb.co/v4z25XnM/images-31.jpg",      themeColor: "#8BC34A" },
+        mindplus:    { name: "MIND PLUS",    profilePic: "https://i.ibb.co/mCCfyDBb/images-29.jpg",      themeColor: "#00BCD4" },
+        qumargunda:  { name: "QUMAR GUNDA",  profilePic: "https://i.ibb.co/rfXFqdNC/download.png",      themeColor: "#F44336" },
+        abdulbom:    { name: "ABDUL BOM",    profilePic: "https://i.ibb.co/N2XJKMvt/images.png",        themeColor: "#3F51B5" },
+        yteam:       { name: "Y TEAM",       profilePic: "https://i.ibb.co/jPDk6tgW/images-32.jpg",        themeColor: "#795548" }
+    };
+    
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const postsCollection = db.collection('posts');
+    const loader = document.getElementById('global-loader');
+    const showLoader = () => loader.classList.add('show');
+    const hideLoader = () => loader.classList.remove('show');
+
+    function formatNumber(num) {
+        if (num >= 1000000) return (num / 1000000).toFixed(1).replace('.0', '') + 'M';
+        if (num >= 1000) return (num / 1000).toFixed(1).replace('.0', '') + 'k';
+        return num;
+    }
+
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+    }
+
+    // --- 1. CORE APP LOGIC ---
+    function renderPosts(posts) {
+        const container = document.getElementById('posts-container');
+        if (!posts || posts.length === 0) {
+            container.innerHTML = '<p style="text-align:center;">No posts in this category yet.</p>';
+            return;
+        }
+        container.innerHTML = posts.map(post => {
+            const author = AUTHORS[post.authorKey] || { name: "Unknown", profilePic: "", themeColor: "#333"};
+            return `
+            <div class="post-card" data-id="${post.id}" style="border-left-color: ${author.themeColor};">
+                <div class="post-header"><div class="profile-info"><img src="${author.profilePic}" class="profile-pic"><div>${author.name}</div></div><span class="post-code">${post.code}</span></div>
+                <p class="main-text">${post.mainText}</p><p class="lesson-text">${post.lessonText}</p>
+                <div class="post-footer">
+                    <button class="action-button">👍 <span>${formatNumber(post.likes)}</span></button>
+                    <button class="action-button">👎 <span>${formatNumber(post.dislikes)}</span></button>
+                    <button class="action-button" onclick="handleShare('${post.id}')">🔗 <span>${formatNumber(post.shares)}</span></button>
+                </div>
+            </div>`}).join('');
+    }
+
+    function filterPosts(category, navItem) {
+        showLoader();
+        setTimeout(() => {
+            if (navItem) {
+                document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+                navItem.classList.add('active');
+            }
+            let filtered = (category === 'all') ? shuffleArray([...allPostsData]) : allPostsData.filter(p => p.category === category);
+            renderPosts(filtered);
+            hideLoader();
+        }, 500);
+    }
+    
+    // --- 2. MAIN APP UI & EVENT HANDLERS ---
+    async function handleShare(postId) {
+        const post = allPostsData.find(p => p.id === postId); if (!post) return;
+        const author = AUTHORS[post.authorKey] || { name: "Someone" };
+        const shareData = { title: `${author.name} on MasumGayan`, text: `${post.mainText}\n\n${post.lessonText}\n- Shared from MasumGayan`, url: window.location.href };
+        try {
+            if (!navigator.share) throw new Error('Web Share API not supported.');
+            await navigator.share(shareData);
+            await postsCollection.doc(postId).update({ shares: firebase.firestore.FieldValue.increment(1) });
+        } catch (err) {
+            navigator.clipboard.writeText(shareData.text).then(() => alert('Post copied to clipboard!'));
+        }
+    }
+    
+    function handleSearch() {
+        const query = document.getElementById('search-input').value.trim();
+        if (!query) return;
+        document.getElementById('search-overlay').classList.remove('active');
+        if (query === adminSecretCode) {
+            document.getElementById('admin-password-overlay').classList.add('active');
+        } else {
+             // Future user search logic can go here.
+        }
+    }
+
+    // --- 3. ADMIN PANEL LOGIC ---
+    function initializeAdminPanel() {
+        const sidebarOverlay = document.getElementById('admin-sidebar-overlay');
+        const authorDropdown = document.getElementById('author');
+        authorDropdown.innerHTML = Object.keys(AUTHORS).map(key => `<option value="${key}">${AUTHORS[key].name}</option>`).join('');
+        
+        const showAdminPage = (hash) => {
+            document.querySelectorAll('.admin-page').forEach(p => p.classList.remove('active'));
+            document.querySelector(hash)?.classList.add('active');
+            document.querySelectorAll('.admin-sidebar-nav a').forEach(l => l.classList.toggle('active', l.getAttribute('href') === hash));
+            if(hash === '#manage') loadAdminPosts();
+            if(hash === '#upload') {
+                document.querySelector('#upload .page-title').innerText = 'Upload New Post';
+                document.querySelector('#upload button[type="submit"]').innerText = 'Upload Post';
+                document.getElementById('upload-form').reset();
+                document.getElementById('edit-post-id').value = '';
+            }
+            sidebarOverlay.classList.remove('active');
+        };
+        
+        document.getElementById('admin-menu-toggle').addEventListener('click', () => sidebarOverlay.classList.toggle('active'));
+        sidebarOverlay.addEventListener('click', (e) => { if(e.target === sidebarOverlay) sidebarOverlay.classList.remove('active'); });
+        document.querySelectorAll('.admin-sidebar-nav a').forEach(link => link.addEventListener('click', e => { e.preventDefault(); showAdminPage(e.target.getAttribute('href')); }));
+        document.getElementById('admin-logout-btn').addEventListener('click', () => { document.getElementById('admin-panel').style.display = 'none'; document.getElementById('main-app-container').style.display = 'block'; });
+
+        document.getElementById('upload-form').addEventListener('submit', async e => {
+            e.preventDefault(); showLoader();
+            try {
+                const editId = document.getElementById('edit-post-id').value;
+                const authorKey = document.getElementById('author').value;
+                const category = document.getElementById('category').value;
+                const fullContent = document.getElementById('post-content').value;
+                if (!authorKey || !category || !fullContent.includes('---')) throw new Error('Please fill all fields and use "---" separator.');
+                const [mainText, lessonText] = fullContent.split('---').map(s => s.trim());
+                if(!mainText || !lessonText) throw new Error('Main text and lesson cannot be empty.');
+                
+                const postData = { authorKey, category, mainText, lessonText, likes: Number(document.getElementById('likes-input').value) || 0, dislikes: Number(document.getElementById('dislikes-input').value) || 0, shares: Number(document.getElementById('shares-input').value) || 0, timestamp: firebase.firestore.FieldValue.serverTimestamp() };
+
+                if (editId) {
+                    await postsCollection.doc(editId).update(postData);
+                } else {
+                    postData.code = `${{home:1,money:2,control:3}[category]}:${Math.floor(10000+Math.random()*90000)}`;
+                    await postsCollection.add(postData);
+                }
+                hideLoader(); alert(editId ? 'Update Successful!' : 'Upload Successful!');
+                e.target.reset(); showAdminPage('#manage');
+            } catch (error) { hideLoader(); alert(`Operation Failed: ${error.message}`); }
+        });
+        showAdminPage('#upload');
+    }
+
+    async function loadAdminPosts(searchTerm = '') {
+        const list = document.getElementById('posts-list-admin');
+        list.innerHTML = '<tr><td colspan="4">Loading...</td></tr>';
+        try {
+            const snapshot = await postsCollection.orderBy('timestamp', 'desc').get();
+            let posts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            if(searchTerm) posts = posts.filter(p => p.code && p.code.includes(searchTerm));
+            if (posts.length === 0) { list.innerHTML = '<tr><td colspan="4">No posts found.</td></tr>'; return; }
+            list.innerHTML = posts.map(post => {
+                const author = AUTHORS[post.authorKey] || { name: "Unknown" };
+                const snippet = (post.mainText || '').substring(0, 20);
+                return `<tr><td>${post.code}</td><td>${author.name}</td><td>${snippet}...</td><td><button onclick="editPost('${post.id}')">Edit</button><button onclick="deletePost('${post.id}')" style="background:var(--danger-color);color:white;">Delete</button></td></tr>`
+            }).join('');
+        } catch(error) {
+            console.error("Error loading admin posts:", error);
+            list.innerHTML = '<tr><td colspan="4">Failed to load posts. Check Firebase Rules.</td></tr>';
+        }
+    }
+
+    async function editPost(id) {
+        const postDoc = await postsCollection.doc(id).get();
+        if (!postDoc.exists) { alert('Error: Post not found.'); return; }
+        const post = postDoc.data();
+        document.getElementById('edit-post-id').value = id;
+        document.getElementById('author').value = post.authorKey;
+        document.getElementById('category').value = post.category;
+        document.getElementById('likes-input').value = post.likes;
+        document.getElementById('dislikes-input').value = post.dislikes;
+        document.getElementById('shares-input').value = post.shares;
+        document.getElementById('post-content').value = `${post.mainText}\n---\n${post.lessonText}`;
+        document.querySelector('#upload .page-title').innerText = `Edit Post (${post.code})`;
+        document.querySelector('#upload button[type="submit"]').innerText = 'Update Post';
+        document.querySelector('.admin-sidebar-nav a[href="#upload"]').click();
+    }
+
+    async function deletePost(id) {
+        if (confirm('Are you sure you want to delete this post?')) {
+            showLoader();
+            try { await postsCollection.doc(id).delete(); hideLoader(); alert('Post deleted.'); loadAdminPosts(); } 
+            catch (error) { hideLoader(); alert(`Error: ${error.message}`); }
+        }
+    }
+
+    // --- 4. APP STARTUP ---
+    document.addEventListener('DOMContentLoaded', () => {
+        document.getElementById('open-search-btn').addEventListener('click', () => document.getElementById('search-overlay').classList.add('active'));
+        document.getElementById('search-close-btn').addEventListener('click', () => document.getElementById('search-overlay').classList.remove('active'));
+        document.getElementById('search-submit-btn').addEventListener('click', handleSearch);
+
+        const adminPassOverlay = document.getElementById('admin-password-overlay');
+        document.getElementById('admin-pass-close-btn').addEventListener('click', () => adminPassOverlay.classList.remove('active'));
+        document.getElementById('admin-pass-submit-btn').addEventListener('click', () => {
+            const passInput = document.getElementById('admin-password-input');
+            if (passInput.value === adminPassword) {
+                adminPassOverlay.classList.remove('active');
+                document.getElementById('main-app-container').style.display = 'none';
+                document.getElementById('admin-panel').style.display = 'block';
+                initializeAdminPanel();
+            } else { alert('Incorrect Password!'); }
+            passInput.value = '';
+        });
+        
+        const welcomeOverlay = document.getElementById('welcome-overlay');
+        if (!localStorage.getItem('hasVisitedBefore')) {
+            welcomeOverlay.classList.add('active');
+        }
+        document.getElementById('welcome-ok-btn').addEventListener('click', () => {
+            welcomeOverlay.classList.remove('active');
+            localStorage.setItem('hasVisitedBefore', 'true');
+        });
+
+        postsCollection.orderBy('timestamp', 'desc').onSnapshot(snapshot => {
+            allPostsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            const currentActiveCategory = document.querySelector('.nav-item.active').getAttribute('onclick').match(/'([^']+)'/)[1];
+            filterPosts(currentActiveCategory, document.querySelector('.nav-item.active'));
+        }, err => console.error("Error fetching posts:", err));
+        
+        document.getElementById('admin-search-input').addEventListener('input', (e) => loadAdminPosts(e.target.value));
+    });
+    </script>
+</body>
+</html>
